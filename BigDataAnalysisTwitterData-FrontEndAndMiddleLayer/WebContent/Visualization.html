@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Data Intensive Computing - Project 2</title>
+<style>
+ body {
+	font: 10px sans-serif;
+}
+
+.axis path,.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+.bar {
+	fill: orange;
+}
+
+.bar:hover {
+	fill: orangered;
+}
+
+.x.axis path {
+	display: none;
+}
+
+.d3-tip {
+	line-height: 1;
+	font-weight: bold;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.8);
+	color: #fff;
+	border-radius: 2px;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+	box-sizing: border-box;
+	display: inline;
+	font-size: 10px;
+	width: 100%;
+	line-height: 1;
+	color: rgba(0, 0, 0, 0.8);
+	content: "\25BC";
+	position: absolute;
+	text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+	margin: -1px 0 0 0;
+	top: 100%;
+	left: 0;
+}
+.table {
+    display:table;
+}
+.row {
+    display:table-row;
+}
+.rowGroup {
+    display:table-row-group;
+}
+.cell {
+    display:table-cell;
+    width:50%;
+}
+</style>
+<link rel="stylesheet"
+	href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="d3.layout.cloud.js"></script>
+<script
+	src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script>
+  $(function() {
+		
+	  $('input:text, input:password')
+	  .button()
+	  .css({
+	          'font' : 'inherit',
+	         'color' : 'inherit',
+	    'text-align' : 'left',
+	       'outline' : 'none',
+	        'cursor' : 'text'
+	  });
+	  $("#subLabel").hide();
+	  
+//	    var margin = {top: 40, right: 20, bottom: 30, left: 40},
+	 var margin ={top: 30, right: 40, bottom: 50, left: 50}
+width = 960 - margin.left - margin.right,
+	    height = 500 - margin.top - margin.bottom;
+	var formatPercent = d3.format(".0%");
+
+	var x = d3.scale.ordinal()
+	    .rangeRoundBands([0, width], .1);
+
+	var y = d3.scale.linear()
+	    .range([height, 0]);
+
+	var xAxis = d3.svg.axis()
+	    .scale(x)
+	    .orient("bottom");
+
+	var yAxis = d3.svg.axis()
+	    .scale(y)
+	    .orient("left");
+	//    .tickFormat(formatPercent);
+
+	var tip = d3.tip()
+	  .attr('class', 'd3-tip')
+	  .offset([-10, 0])
+	  .html(function(d) {
+	    return "<strong>Word:</strong> <span style='color:red'>" + d.wordName + "</span>"+"<br><strong>Count:</strong> <span style='color:red'>" + d.count + "</span>";
+	  })
+ 
+	var svg2 = d3.select("#mostTrendingHash").append("svg")
+	    .attr("width", width + margin.left + margin.right)
+	    .attr("height",100+ height + margin.top + margin.bottom)
+	  .append("g")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	var svg3 = d3.select("#mostTagged").append("svg")
+	    .attr("width", width + margin.left + margin.right)
+	    .attr("height",100+ height + margin.top + margin.bottom)
+	  .append("g")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	svg2.call(tip);
+	svg3.call(tip);
+ 
+	  
+	  $( "#mtwOuter" ).button().click(function( event ) {
+		  $("#subLabel").show();
+		  $('#subLabel_MTW').siblings('div').hide();
+		  $('#subLabel_MTW').show();
+	  });
+
+	  $( "#coHT" ).button().click(function( event ) {
+		  $("#subLabel").show();
+		  $('#subLabel_coHT').siblings('div').hide();
+		  $('#subLabel_coHT').show();
+		  $("#hashPairs").hide();
+		  $("#hashStripes").hide();
+  		  
+	  });
+
+	  $( "#kMeans" ).button().click(function( event ) {
+		  $("#subLabel").show();
+		  $('#subLabel_kMeans').siblings('div').hide();
+		  $('#subLabel_kMeans').show();
+	  });
+
+	  $( "#shtPath" ).button().click(function( event ) {
+		  $("#subLabel").show();
+		  $('#subLabel_shtPath').siblings('div').hide();
+		  $('#subLabel_shtPath').show();
+	  });
+	  $( "#users" ).button().click(function( event ) {
+		  $("#subLabel").show();
+		  $('#subLabel_users').siblings('div').hide();
+		  $('#subLabel_users').show();
+	  });
+	  $( "#tweets" ).button().click(function( event ) {
+		  $("#subLabel").show();
+		  $('#subLabel_tweets').siblings('div').hide();
+		  $('#subLabel_tweets').show();
+	  });
+
+	  $( "#cop" ).button().click(function( event ) {
+		  $("#hashPairs").show();
+		  $("#hashStripes").hide();
+		  		  
+	  });
+	  $( "#showRF_cop" ).button().click(function( event ) {
+    	  
+		    var JsonData=  $.getJSON( "rest/cooccurringhashtag","tag="+$('#inputcoHT').val(), function(returnVal) {
+		    	//  console.log( "success" );
+
+		    	$("#hashPairs svg").remove();
+		    	  var list=returnVal.chList;
+		    		$("#hashPairs").show();
+  	  var frequency_list = list;
+	    	    var color = d3.scale.linear()
+	    	            .domain([0,1,2,3,4,5,6,10,15,20,100])
+	    	            .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
+	    	    var   widthMTW=$( "#hashPairs" ).width();
+		    	var  heightMTW=800;
+		    	
+	    	 console.log("list:"+list);
+	    	   
+	    	   var relativeSize=d3.max(frequency_list, function(d) { return d.frequency; })
+	    	    d3.layout.cloud().size([widthMTW, heightMTW])
+	    	            .words(frequency_list)
+	    	            .rotate(0)
+	    	            .fontSize(function(d) { 
+	    	            	if((d.frequency/relativeSize)<0.9)    	            	
+	    	            		return (d.frequency*10); 
+	    	            	return (d.frequency*85/100); 
+	    	            	
+	    	            
+	    	            })
+	    	            .on("end", draw)
+	    	            .start();
+
+	    	    function draw(words) {
+	    	        d3.select("#hashPairs").append("svg")
+	    	                .attr("width", widthMTW)
+	    	                .attr("height", heightMTW)
+	    	                .attr("class", "wordcloud")
+	    	                .append("g")
+	    	                // without the transform, words words would get cutoff to the left and top, they would
+	    	                // appear outside of the SVG area
+	    	                .attr("transform", "translate("+(widthMTW*45/100)+","+(heightMTW*50/100)+")")
+	    	                .selectAll("text")
+	    	                .data(words)
+	    	                .enter().append("text")
+	    	                .style("font-size", function(d) { 
+	    	                	if((d.frequency/relativeSize)<0.9)    	            	
+		    	            		return (d.frequency*10)+ "px"; 
+		    	            	return (d.frequency*85/100)+ "px"; 
+		    	            	 })
+	    	                .style("fill", function(d, i) { return color(i); })
+	    	                .attr("transform", function(d) {
+	    	                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+	    	                })
+	    	                .text(function(d) { return d.word; });
+	    	    }
+	    	  	  	
+}).done(function() {
+	    console.log( "second success" );
+	  })
+	  .fail(function() {
+	    console.log( "error" );
+	  })
+	  .always(function() {
+	    console.log( "complete" );
+	  });		  
+	  });
+	  $( ".cos" ).button().click(function( event ) {
+		  $("#hashPairs").hide();
+		  $("#hashStripes").show();
+		  		  
+	  });
+	  $( "#showRF_cos" ).button().click(function( event ) {
+    	  
+		    var JsonData=  $.getJSON( "rest/cooccurringhashtagStripes","tag="+$('#inputcoHTS').val(), function(returnVal) {
+		    	//  console.log( "success" );
+
+		    	$("#hashStripes svg").remove()
+		    	  var list=returnVal.chList;
+		    	   	$("#hashStripes").show();
+    	  var frequency_list = list;
+	    	    var color = d3.scale.linear()
+	    	            .domain([0,1,2,3,4,5,6,10,15,20,100])
+	    	            .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
+	    	    var   widthMTW=$( "#hashStripes" ).width();
+		    	var  heightMTW=800;
+		    	 console.log("list:"+list);
+	    	   
+	    	   var relativeSize=d3.max(frequency_list, function(d) { return d.frequency; })
+	    	    d3.layout.cloud().size([widthMTW, heightMTW])
+	    	            .words(frequency_list)
+	    	            .rotate(0)
+	    	            .fontSize(function(d) { if((d.frequency/relativeSize)<0.9)    	            	
+    	            		return (d.frequency*10); 
+    	            	return (d.frequency*85/100);  })
+	    	            .on("end", draw)
+	    	            .start();
+
+	    	    function draw(words) {
+	    	        d3.select("#hashStripes").append("svg")
+	    	                .attr("width", widthMTW)
+	    	                .attr("height", heightMTW)
+	    	                .attr("class", "wordcloud")
+	    	                .append("g")
+	    	                // without the transform, words words would get cutoff to the left and top, they would
+	    	                // appear outside of the SVG area
+	    	                .attr("transform", "translate("+(widthMTW*45/100)+","+(heightMTW*50/100)+")")
+	    	                .selectAll("text")
+	    	                .data(words)
+	    	                .enter().append("text")
+	    	                .style("font-size", function(d) { 
+	    	                	if((d.frequency/relativeSize)<0.9)    	            	
+		    	            		return (d.frequency*10)+ "px"; 
+		    	            	return (d.frequency*85/100)+ "px"; 
+		    	            	 })
+	    	                .style("fill", function(d, i) { return color(i); })
+	    	                .attr("transform", function(d) {
+	    	                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+	    	                })
+	    	                .text(function(d) { return d.word; });
+	    	    }
+	    	  
+	    		$("#hashStripes").show();		  	
+}).done(function() {
+	    console.log( "second success" );
+	  })
+	  .fail(function() {
+	    console.log( "error" );
+	  })
+	  .always(function() {
+	    console.log( "complete" );
+	  });		  
+	  });
+
+    $( ".mtw" ).button().click(function( event ) {
+        $("#mostTrendingWords").hide();
+        $("#mostTagged").hide(); 
+        $("#mostTrendingHash").hide(); 
+	
+        var JsonData=  $.getJSON( "rest/mostTrendingWords", function(returnVal) {
+	    	//  console.log( "success" );
+	    	  var list=returnVal.mtList;
+	    	  $( "#mostTrendingWords" ).empty();
+	    		$("#mostTrendingWords").show();
+    	  var frequency_list = list;
+	    	    var color = d3.scale.linear()
+	    	            .domain([0,1,2,3,4,5,6,10,15,20,100])
+	    	            .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
+	    	var   widthMTW=$( "#mostTrendingWords" ).width();
+	    	var  heightMTW=800;
+	    	   
+	    	   var relativeSize=d3.max(frequency_list, function(d) { return d.count; })
+	    	    d3.layout.cloud().size([widthMTW, heightMTW])
+	    	            .words(frequency_list)
+	    	            .rotate(0)
+	    	            .fontSize(function(d) { 
+	    	             	if(d.count/relativeSize<0.3)
+	    	           		return ((d.count*300)/relativeSize); 
+	    	     return ((d.count*200)/relativeSize); 
+	    	            	})
+	    	            .on("end", draw)
+	    	            .start();
+
+	    	    function draw(words) {
+	    	        d3.select("#mostTrendingWords").append("svg")
+	    	                .attr("width", widthMTW)
+	    	                .attr("height", heightMTW)
+	    	                .attr("class", "wordcloud")
+	    	                .append("g")
+	    	                // without the transform, words words would get cutoff to the left and top, they would
+	    	                // appear outside of the SVG area
+	    	                .attr("transform", "translate("+(widthMTW*35/100)+","+(heightMTW*41/100)+")")
+	    	                .selectAll("text")
+	    	                .data(words)
+	    	                .enter().append("text")
+	    	                .style("font-size", function(d) { 
+	    	                	if(d.count/relativeSize<0.3)
+		    	           		return ((d.count*300)/relativeSize)+ "px";
+	    	                	return     	((d.count*200)/relativeSize) + "px"; })
+	    	                .style("fill", function(d, i) { return color(i); })
+	    	                .attr("transform", function(d) {
+	    	                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+	    	                })
+	    	                .text(function(d) { return d.wordName; });
+	    	    }
+	    	  
+	    	
+	    	  
+
+        
+        /***************MTW CODE*****************/
+        
+
+       /*  var JsonData=  $.getJSON( "rest/mostTrendingWords", function(returnVal) {
+    	    	//  console.log( "success" );
+    	    	  var list=returnVal.mtList;
+    	 		  x.domain(list.map(function(d) { return d.wordName; }));
+    	    		  y.domain([0, d3.max(list, function(d) { return d.count; })]);
+
+    	    		  svg1.append("g")
+    	    		      .attr("class", "x axis")
+    	    		      .attr("transform", "translate(0," + height + ")")
+    	    		      .call(xAxis)
+    	    		      .selectAll("text")  
+           				  .style("text-anchor", "end")
+            			  .attr("dx", "-.8em")
+            			  .attr("dy", ".15em")
+            			  .attr("transform", function(d) {return "rotate(-65)" });
+
+    	    		  svg1.append("g")
+    	    		      .attr("class", "y axis")
+    	    		      .call(yAxis)
+    	    		    .append("text")
+    	    		      .attr("transform", "rotate(-90)")
+    	    		      .attr("y", 6)
+    	    		      .attr("dy", ".71em")
+    	    		      .style("text-anchor", "end")
+    	    		      .text("Count");
+
+    	    		  svg1.selectAll(".bar")
+    	    		      .data(list)
+    	    		    .enter().append("rect")
+    	    		      .attr("class", "bar")
+    	    		      .attr("x", function(d) { return x(d.wordName); })
+    	    		      .attr("width", x.rangeBand())
+    	    		      .attr("y", function(d) { return y(d.count); })
+    	    		      .attr("height", function(d) { return height - y(d.count); })
+    	    		      .on('mouseover', tip.show)
+    	    		      .on('mouseout', tip.hide)
+    	
+    	
+    	    		  	$("#mostTrendingWords").show();
+    		}).done(function() {
+    	    	    console.log( "second success" );
+    	    	  })
+    	    	  .fail(function() {
+    	    	    console.log( "error" );
+    	    	  })
+    	    	  .always(function() {
+    	    	    console.log( "complete" );
+    	    	  });
+ */
+	    	    console.log(JSON.stringify(list));
+ });    
+ 
+
+       });
+
+    $( ".mtu" ).button().click(function( event ) {
+        //	$("#placeHolder").text("Anand");
+         $("#mostTrendingWords").hide();
+        $("#mostTagged").hide(); 
+        $("#mostTrendingHash").hide(); 	
+        	var JsonData=  $.getJSON( "rest/mostTagged", function(returnVal) {
+        	    	//  console.log( "success" );
+        	    	  var list=returnVal.mtList;
+        	 		  x.domain(list.map(function(d) { return d.wordName; }));
+        	    		  y.domain([0, d3.max(list, function(d) { return d.count; })]);
+
+        	    		  svg3.append("g")
+        	    		      .attr("class", "x axis")
+        	    		      .attr("transform", "translate(0," + height + ")")
+        	    		      .call(xAxis) 
+        	    		      .selectAll("text")  
+               				  .style("text-anchor", "end")
+                			  .attr("dx", "-.8em")
+                			  .attr("dy", ".15em")
+                			  .style("font-size",13)
+                			  .attr("transform", function(d) {return "rotate(-65)" });
+
+        	    		  svg3.append("g")
+        	    		      .attr("class", "y axis")
+        	    		      .call(yAxis)
+        	    		    .append("text")
+        	    		      .attr("transform", "rotate(-90)")
+        	    		      .attr("y", 6)
+        	    		      .attr("dy", ".71em")
+        	    		      .style("text-anchor", "end")
+        	    		      .text("Count");
+
+        	    		  svg3.selectAll(".bar")
+        	    		      .data(list)
+        	    		    .enter().append("rect")
+        	    		      .attr("class", "bar")
+        	    		      .attr("x", function(d) { return x(d.wordName); })
+        	    		      .attr("width", x.rangeBand())
+        	    		      .attr("y", function(d) { return y(d.count); })
+        	    		      .attr("height", function(d) { return height - y(d.count); })
+        	    		      .on('mouseover', tip.show)
+        	    		      .on('mouseout', tip.hide)
+        	    		      $("#mostTagged").show();	
+        	}).done(function() {
+        	    	    console.log( "second success" );
+        	    	  })
+        	    	  .fail(function() {
+        	    	    console.log( "error" );
+        	    	  })
+        	    	  .always(function() {
+        	    	    console.log( "complete" );
+        	    	  });
+            console.log(JSON.stringify(JsonData));
+          });
+    $( ".mth" ).button().click(function( event ) {
+        //	$("#placeHolder").text("Anand");
+        	
+         $("#mostTrendingWords").hide();
+        $("#mostTagged").hide(); 
+        $("#mostTrendingHash").hide(); 
+    		var JsonData=  $.getJSON( "rest/mostTrendingHash", function(returnVal) {
+        	    	//  console.log( "success" );
+        	    	  var list=returnVal.mtList;
+        	 		  x.domain(list.map(function(d) { return d.wordName; }));
+        	    		  y.domain([0, d3.max(list, function(d) { return d.count; })]);
+
+        	    		  svg2.append("g")
+        	    		      .attr("class", "x axis")
+        	    		      .attr("transform", "translate(0," + height + ")")
+        	    		      .call(xAxis) 
+        	    		      .selectAll("text")  
+               				  .style("text-anchor", "end")
+                			  .attr("dx", "-.8em")
+                			  .attr("dy", ".15em")
+                			   .style("font-size",13)
+                			  .attr("transform", function(d) {return "rotate(-65)" });
+
+        	    		  svg2.append("g")
+        	    		      .attr("class", "y axis")
+        	    		      .call(yAxis)
+        	    		    .append("text")
+        	    		      .attr("transform", "rotate(-90)")
+        	    		      .attr("y", 6)
+        	    		      .attr("dy", ".71em")
+        	    		      .style("text-anchor", "end")
+        	    		      .text("Count");
+
+        	    		  svg2.selectAll(".bar")
+        	    		      .data(list)
+        	    		    .enter().append("rect")
+        	    		      .attr("class", "bar")
+        	    		      .attr("x", function(d) { return x(d.wordName); })
+        	    		      .attr("width", x.rangeBand())
+        	    		      .attr("y", function(d) { return y(d.count); })
+        	    		      .attr("height", function(d) { return height - y(d.count); })
+        	    		      .on('mouseover', tip.show)
+        	    		      .on('mouseout', tip.hide)
+        	    		    
+        
+       			$("#mostTrendingHash").show();
+        	    	        
+        		}).done(function() {
+        	    	    console.log( "second success" );
+        	    	  })
+        	    	  .fail(function() {
+        	    	    console.log( "error" );
+        	    	  })
+        	    	  .always(function() {
+        	    	    console.log( "complete" );
+        	    	  });
+            console.log(JSON.stringify(JsonData));
+          });
+ 
+ 
+
+
+function type(d) {
+	
+ // d.count = +d.count;
+  return d;
+}
+    
+    
+    
+  });
+  </script>
+</head>
+<body>
+	<div id="labels" class="labels">
+		<input id="mtwOuter" type="submit" value="Most Trending Words" class="outerLabels"> 
+		<input id="coHT" type="submit" value="Co-Occurrance" class="outerLabels"> 
+		<input id="kMeans" type="submit" value="K-Means Clustering" class="outerLabels"> 
+		<input id="shtPath" type="submit" value="Shortest Path" class="outerLabels">
+		<input id="users" type="submit" value="User-Platform Chart" class="outerLabels">
+		<input id="tweets" type="submit" value="Tweets Origin" class="outerLabels">
+	</div>
+	<div id="subLabel">
+		<div id="subLabel_MTW">
+			<input type="submit" value="Popular Words" class="mtw">
+			<input type="submit" value="Popular User" class="mtu">
+			<input type="submit" value="Popular HashTag" class="mth">	
+			<div id="mostTrendingWords"></div>
+			<div id="mostTagged"></div>
+			<div id="mostTrendingHash"></div>
+		</div>
+		<div id="subLabel_coHT">
+			<input id="cop" type="submit" value="Co-Occurrance Pairs" class="cop">
+			<input id="cos" type="submit" value="Co-Occurrance Stripes" class="cos">
+			<div id="hashPairs">
+			<label id="msg">Enter Hash Tag</label>
+			<input id="inputcoHT" type="text" value="" class="cop">	
+			<input id="showRF_cop" type="submit" value="Show Relative Frequency" class="cop">				
+			</div>
+			<div id="hashStripes">
+			<label id="msg">Enter Hash Tag</label>
+			<input id="inputcoHTS" type="text" value="" class="cos">	
+			<input id="showRF_cos" type="submit" value="Show Relative Frequency" class="cos">				
+			</div>
+		</div>
+		<div id="subLabel_kMeans">
+			<div id="kMeansIMG">
+			<div class="kmeansheading">
+				<div>K-Means Clustering Results</div>
+				<div>Cluster 1: 183.6</div>
+				<div>Cluster 2: 1490400.0</div>
+				<div>Cluster 3: 5585300.0</div>
+			</div>
+				<img id="theImg"  src="images/kmeans_final_diagram.png" />
+			</div>
+		</div>
+		<div id="subLabel_shtPath">
+			<div id="shtPath">
+			<div class="shtPathheading">
+				<div>Shortest Path Results</div>
+				<div>Cluster 1: 183.6</div>
+				<div>Cluster 2: 183.6</div>
+				<div>Cluster 3: 183.6</div>
+			</div>
+			<div class="table">
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell">Graph Small and Tree Small</div>
+			    </div>
+			  </div>
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell"><img class="theImg"  src="images/graph_small1.PNG" /></div>
+			      <div class="cell"><img class="theImg"  src="images/tree_small1.PNG" /></div>
+			    </div>
+			  </div>
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell">Shortest Path Small</div>
+			    </div>
+			  </div>
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell"><img class="theImg"  src="images/graph_small_shortest_path1.PNG" /></div>
+			      <div class="cell"><img class="theImg"  src="images/tree_small_shortest_path1.PNG" /></div>
+			    </div>
+			  </div>
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell">Graph and Tree Large</div>
+			    </div>
+			  </div>
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell"><img class="theImg"  src="images/graph_large.PNG" /></div>
+			      <div class="cell"><img class="theImg"  src="images/tree_large.PNG" /></div>
+			    </div>
+			  </div>
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell">Shortest Path Large</div>
+			    </div>
+			  </div>
+			   <div class="grp">
+			    <div class="row">
+			      <div class="cell"><img class="theImg"  src="images/graph_large_shortest_path.PNG" /></div>
+			      <div class="cell"><img class="theImg"  src="images/tree_large_shortest_path.PNG" /></div>
+			    </div>
+			  </div>
+			</div>
+			</div>
+		</div>
+		<div id="subLabel_users">
+			<div class="userheading">
+					<div>Results Showing the popularity of Device based on tweet source data</div>
+			</div>
+				<img class="theImg"  src="images/Users.PNG" />
+		</div>
+		<div id="placeHolder">	
+		</div>
+		<div id="subLabel_tweets">
+			<div class="Tweetheading">
+					<div>Tweets Originating Across the Globe</div>
+			</div>
+			<img class="theImg"  src="images/tweet_count_across_world.png"  style="width:100%;"/>
+		</div>
+</div>
+
+</body>
+</html>
