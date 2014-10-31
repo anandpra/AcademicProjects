@@ -31,32 +31,24 @@ int main(int argc, char **argv){
 
 	float * inputArray = (float *)malloc(size*sizeof(float));
 	struct timeval begin,end;
-	int N_threads =2;
+	int N_threads = 2;
 
 	random_number_generator_normal(inputArray,size,max);
-
-	int i;
-
-/*
-	printf("Printing unsorted List\n");
-	for(i = 0; i < size;i++){
-		printf("%f\t",inputArray[i]);
-	}
-
-*/
 
 	gettimeofday(&begin,NULL);
 
 	float element;
 	int thread_id;
-#pragma omp parallel private(thread_id)
-{
-	 thread_id=  omp_get_thread_num();
-	if(thread_id ==0)
-		N_threads = omp_get_num_threads();
 
-}	//	N_threads = 8;
-	//printf("\nNthreads:%d",N_threads);
+#pragma omp parallel private(thread_id)
+	{
+		thread_id=  omp_get_thread_num();
+		if(thread_id ==0)
+			N_threads = omp_get_num_threads();
+
+	}
+
+
 	int blocks;
 	int blockSize = size/N_threads;
 	int blockStart = 0;
@@ -64,41 +56,22 @@ int main(int argc, char **argv){
 
 
 	for(blocks = 0 ; blocks < N_threads; blocks++ ){
-		//		printf("\n**********************%d block *******************\n",(blocks + 1));
-
 		blockStart = blocks * blockSize;
 		blockEnd = blockStart + blockSize - 1;
-
-		element = selectKthElement(inputArray, blockStart, size - 1, blockSize);
-
-		/*
-		printf("\nUnsorted\n");
-		int h;
-		for(h = blockStart; h < blockEnd;h++){
-			printf("%f\t",inputArray[h]);
-		}
-		 */
+		selectKthElement(inputArray, blockStart, size - 1, blockSize);
 	}
+
 #pragma omp parallel shared(N_threads) private(blockStart,blockEnd)
 
 	{
 
-	#pragma omp for schedule(static)
+#pragma omp for schedule(static)
 		for(blocks = 0 ; blocks < N_threads; blocks++ ){
-			//		printf("\n**********************%d block *******************\n",(blocks + 1));
 
 			blockStart = blocks * blockSize;
 			blockEnd = blockStart + blockSize - 1;
 
 			quickSortBucket(inputArray, blockStart, blockEnd);
-
-			/*
-		printf("\nSorted\n");
-
-		for(h = blockStart; h < blockEnd;h++){
-			printf("%f\t",inputArray[h]);
-		}
-			 */
 
 		}
 	}
@@ -106,19 +79,10 @@ int main(int argc, char **argv){
 
 	gettimeofday(&end,NULL);
 
-/*
-	printf("\n-------------------------------------------Sorted List--------------------------------------------------\n");
-
-	for(i = 0; i < size;i++){
-		printf("%f\t",inputArray[i]);
-	}*/
-
-
-
 
 	double timeElapsed=(end.tv_sec-begin.tv_sec)+(end.tv_usec-begin.tv_usec)/1000000.0;
-
 	printf("\n%d \t %f\n",size,timeElapsed);
+
 	return 0;
 }
 
@@ -138,7 +102,6 @@ float selectKthElement(float inputArray[], int left, int right, int i){
 		return inputArray[left];
 
 	int randomIndex = rand() % (right - left) + left;
-	//printf("\n RandomIndex:%d num:%f",randomIndex, inputArray[randomIndex]);
 
 	swap(inputArray, randomIndex, right);
 

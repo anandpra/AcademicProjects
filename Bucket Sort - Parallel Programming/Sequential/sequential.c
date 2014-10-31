@@ -24,7 +24,6 @@ int main(int argc, char **argv){
 	if(strcmp("-t",argv[1])==0){
 		size = atoi(argv[2]);
 	}
-	//printf("%s %s Size: %d",argv[1],argv[2],size);
 	/*Populate the array*/
 
 	float* inputArray = (float *)malloc(size*sizeof(float));
@@ -33,13 +32,6 @@ int main(int argc, char **argv){
 	random_number_generator_normal(inputArray,size,max);
 
 	int i;
-/*
-	printf("Printing unsorted List\n");
-	for(i = 0; i < size;i++){
-		printf("%f\t",inputArray[i]);
-	}
-*/
-
 	gettimeofday(&begin,NULL);
 
 	float element;
@@ -50,49 +42,22 @@ int main(int argc, char **argv){
 	int blockEnd = blockStart + blockSize;
 
 	for(blocks = 0 ; blocks < size/blockSize;blocks++){
-//		printf("\n**********************%d block *******************\n",(blocks + 1));
 
 		blockStart = blocks * blockSize;
 		blockEnd = blockStart + blockSize - 1;
 
 		element = selectKthElement(inputArray, blockStart, size - 1, blockSize);
 
-/*
-		printf("\nUnsorted\n");
-		int h;
-		for(h = blockStart; h < blockEnd;h++){
-			printf("%f\t",inputArray[h]);
-		}
-*/
 
 		quickSortBucket(inputArray, blockStart, blockEnd);
 
-/*
-		printf("\nSorted\n");
-
-		for(h = blockStart; h < blockEnd;h++){
-			printf("%f\t",inputArray[h]);
-		}
-*/
 
 	}
 
 	gettimeofday(&end,NULL);
 
-/*
-	printf("\n-------------------------------------------Sorted List--------------------------------------------------\n");
-
-	for(i = 0; i < size;i++){
-		printf("%f\t",inputArray[i]);
-	}
-*/
-
-
-
 	double timeElapsed=(end.tv_sec-begin.tv_sec)+(end.tv_usec-begin.tv_usec)/1000000.0;
-//Size <Tab> Time Elapsed
 	printf("\n%d \t %f\n",size,timeElapsed);
-
 
 	return 0;
 }

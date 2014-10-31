@@ -25,8 +25,7 @@ int main(int argc, char **argv){
 	if(strcmp("-t",argv[1])==0){
 		size = atoi(argv[2]);
 	}
-	//printf("%s %s Size: %d",argv[1],argv[2],size);
-	/*Populate the array*/
+
 
 	MPI_Status status;
 	int rank, NProcs;
@@ -57,44 +56,20 @@ int main(int argc, char **argv){
 	int processNum ;
 	if(rank == 0){
 
-		/*printf("Printing unsorted List\n");
-		for(i = 0; i < size;i++){
-			printf("%f\t",inputArray[i]);
-		}*/
 		for(blocks = 0 ; blocks < NProcs;blocks++){
-			//		printf("\n**********************%d block *******************\n",(blocks + 1));
 
 			blockStart = blocks * blockSize;
 			blockEnd = blockStart + blockSize - 1;
 
 			element = selectKthElement(inputArray, blockStart, size - 1, blockSize);
 
-			/*
-		printf("\nUnsorted\n");
-		int h;
-		for(h = blockStart; h < blockEnd;h++){
-			printf("%f\t",inputArray[h]);
-		}
-			 */
 		}
 		for(blocks = 1 ; blocks < NProcs;blocks++){
-			//		printf("\n**********************%d block *******************\n",( + 1));
 
 			blockStart = blocks * blockSize;
 			blockEnd = blockStart + blockSize - 1;
-
-			//	quickSortBucket(inputArray, blockStart, blockEnd);
 			processNum = blocks;
 			MPI_Send(&inputArray[blockStart], blockSize, MPI_FLOAT, processNum, 0, MPI_COMM_WORLD);
-
-
-			/*
-		printf("\nSorted\n");
-
-		for(h = blockStart; h < blockEnd;h++){
-			printf("%f\t",inputArray[h]);
-		}
-			 */
 
 		}
 		blockStart = 0;
@@ -110,15 +85,6 @@ int main(int argc, char **argv){
 		}
 		gettimeofday(&end,NULL);
 
-/*
-		printf("\n-------------------------------------------Sorted List--------------------------------------------------\n");
-
-		for(i = 0; i < size;i++){
-			printf("%f\t",inputArray[i]);
-		}
-*/
-
-
 		double timeElapsed=(end.tv_sec-begin.tv_sec)+(end.tv_usec-begin.tv_usec)/1000000.0;
 
 		printf("\n%d \t %f\n",size,timeElapsed);
@@ -128,30 +94,11 @@ int main(int argc, char **argv){
 		float bucket[blockSize];
 		MPI_Recv(&bucket, blockSize, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
 
-		int i =0;
-/*
-		if(rank ==1){
-			printf("Before sorting rank:%d",rank);
-			for(i =0;i<blockSize;i++){
-				printf(" %f\t",bucket[i]);
-			}
-		}
-*/
 		blockStart = 0;
 		blockEnd = blockStart + blockSize - 1;
-		/*if(rank ==1){
 
-		printf("\nblockStart:%d blockSize:%d blockEnd:%d\n",blockStart,blockSize,blockEnd);
-		}
-*/		quickSortBucket(bucket, blockStart, blockEnd);
+		quickSortBucket(bucket, blockStart, blockEnd);
 
-		/*if(rank == 1){
-			printf("\nAfter sorting rank:%d",rank);
-			for(i = 0 ; i < blockSize ; i++){
-				printf(" %f\t",bucket[i]);
-			}
-			printf("\n");
-		}*/
 		MPI_Send(&bucket, blockSize, MPI_FLOAT, 0, 1, MPI_COMM_WORLD);
 	}
 
@@ -177,7 +124,6 @@ float selectKthElement(float inputArray[], int left, int right, int i){
 		return inputArray[left];
 
 	int randomIndex = rand() % (right - left) + left;
-	//printf("\n RandomIndex:%d num:%f",randomIndex, inputArray[randomIndex]);
 
 	swap(inputArray, randomIndex, right);
 
