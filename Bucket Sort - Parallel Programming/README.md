@@ -1,6 +1,10 @@
+
 Problem Statement:
+          
           Simple Parallel Bucket Sorting using OpenMP and MPI: study of scalability.
-          Description: 
+
+Description: 
+
              In this assignment you will optimize parallel programs using OpenMP in a sharedmemory
           environment and using MPI in a distributed-memory environment. In particular, you will
           have to parallelize a simple bucket sorting algorithm.
@@ -18,4 +22,5 @@ Problem Statement:
           parallel version of the algorithm works correctly.
 
 Project Report:
+
         Please refer to "Parallel Bucket Sort - Project Report" present above.
